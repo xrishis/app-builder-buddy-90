@@ -1,14 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import RoleSelection from "./RoleSelection";
+import PassengerBooking from "./PassengerBooking";
+import CoolieDashboard from "./CoolieDashboard";
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentView, setCurrentView] = useState<'selection' | 'passenger' | 'coolie'>('selection');
+
+  const handleRoleSelect = (role: 'passenger' | 'coolie') => {
+    setCurrentView(role);
+  };
+
+  const handleBack = () => {
+    setCurrentView('selection');
+  };
+
+  if (currentView === 'passenger') {
+    return <PassengerBooking onBack={handleBack} />;
+  }
+
+  if (currentView === 'coolie') {
+    return <CoolieDashboard onBack={handleBack} />;
+  }
+
+  return <RoleSelection onRoleSelect={handleRoleSelect} />;
 };
 
 export default Index;
