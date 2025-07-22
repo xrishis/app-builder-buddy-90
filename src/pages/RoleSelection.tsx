@@ -1,8 +1,8 @@
-import { Users, UserCheck } from "lucide-react";
+import { Users, UserCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const RoleSelection = ({ onRoleSelect }: { onRoleSelect: (role: 'passenger' | 'coolie') => void }) => {
+const RoleSelection = ({ onRoleSelect }: { onRoleSelect: (role: 'passenger' | 'coolie' | 'admin') => void }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-4xl w-full">
@@ -11,7 +11,7 @@ const RoleSelection = ({ onRoleSelect }: { onRoleSelect: (role: 'passenger' | 'c
           <p className="text-lg text-gray-600">Your trusted railway porter booking platform</p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onRoleSelect('passenger')}>
             <CardHeader className="text-center">
               <Users className="w-16 h-16 text-blue-600 mx-auto mb-4" />
@@ -66,6 +66,35 @@ const RoleSelection = ({ onRoleSelect }: { onRoleSelect: (role: 'passenger' | 'c
               </div>
               <Button className="w-full" variant="outline" size="lg">
                 Start Earning
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onRoleSelect('admin')}>
+            <CardHeader className="text-center">
+              <Shield className="w-16 h-16 text-purple-600 mx-auto mb-4" />
+              <CardTitle className="text-2xl">Admin Panel</CardTitle>
+              <CardDescription className="text-base">
+                Manage stations, verify coolies, and oversee operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm text-gray-600 mb-6">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3"></div>
+                  Station management
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3"></div>
+                  Coolie verification
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3"></div>
+                  Analytics & reports
+                </div>
+              </div>
+              <Button className="w-full" variant="outline" size="lg">
+                Access Admin Panel
               </Button>
             </CardContent>
           </Card>
