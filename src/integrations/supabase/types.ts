@@ -14,7 +14,232 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_time: string
+          completion_pin: string | null
+          coolie_id: string | null
+          created_at: string
+          fare: number | null
+          id: string
+          is_paid: boolean
+          luggage_type: string
+          passenger_id: string
+          payment_method: string | null
+          platform_number: number | null
+          status: string
+          train_number: string | null
+          weight: number
+        }
+        Insert: {
+          booking_time?: string
+          completion_pin?: string | null
+          coolie_id?: string | null
+          created_at?: string
+          fare?: number | null
+          id?: string
+          is_paid?: boolean
+          luggage_type: string
+          passenger_id: string
+          payment_method?: string | null
+          platform_number?: number | null
+          status?: string
+          train_number?: string | null
+          weight: number
+        }
+        Update: {
+          booking_time?: string
+          completion_pin?: string | null
+          coolie_id?: string | null
+          created_at?: string
+          fare?: number | null
+          id?: string
+          is_paid?: boolean
+          luggage_type?: string
+          passenger_id?: string
+          payment_method?: string | null
+          platform_number?: number | null
+          status?: string
+          train_number?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_coolie_id_fkey"
+            columns: ["coolie_id"]
+            isOneToOne: false
+            referencedRelation: "coolies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "passengers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coolies: {
+        Row: {
+          aadhar_url: string | null
+          created_at: string
+          earnings: number
+          id: string
+          is_available: boolean
+          kyc_verified: boolean
+          name: string
+          phone: string
+          station_id: string | null
+          user_id: string
+        }
+        Insert: {
+          aadhar_url?: string | null
+          created_at?: string
+          earnings?: number
+          id?: string
+          is_available?: boolean
+          kyc_verified?: boolean
+          name: string
+          phone: string
+          station_id?: string | null
+          user_id: string
+        }
+        Update: {
+          aadhar_url?: string | null
+          created_at?: string
+          earnings?: number
+          id?: string
+          is_available?: boolean
+          kyc_verified?: boolean
+          name?: string
+          phone?: string
+          station_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coolies_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "stations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passengers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          phone: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stations: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
