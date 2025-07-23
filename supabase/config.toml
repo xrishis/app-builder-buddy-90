@@ -1,1 +1,10 @@
 project_id = "adklmrgrjhqanlauhylk"
+
+[functions.create-booking]
+verify_jwt = true
+
+[functions.assign-coolie]
+verify_jwt = true
+
+[functions.complete-booking]
+verify_jwt = true
