@@ -35,10 +35,10 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   }, [onAuthSuccess]);
 
   const sendOTP = async () => {
-    if (!phone || phone.length < 10) {
+    if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
       toast({
-        title: "Invalid Phone",
-        description: "Please enter a valid phone number",
+        title: "Invalid Phone Number",
+        description: "Please enter a valid 10-digit mobile number",
         variant: "destructive"
       });
       return;
@@ -76,10 +76,10 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   };
 
   const verifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
+    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
       toast({
         title: "Invalid OTP",
-        description: "Please enter the 6-digit code",
+        description: "Please enter the complete 6-digit verification code",
         variant: "destructive"
       });
       return;

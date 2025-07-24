@@ -37,7 +37,19 @@ serve(async (req) => {
     console.log(`Fetching PNR details for: ${pnr}`);
     
     try {
-      const pnrResponse = await fetch(`http://pnrapi.dfth.in/pnr/${pnr}`);
+      // Use HTTPS for the PNR API call
+      const pnrResponse = await fetch(`https://pnrapi.dfth.in/pnr/${pnr}`, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'CoolieX-App/1.0',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!pnrResponse.ok) {
+        throw new Error(`PNR API returned ${pnrResponse.status}: ${pnrResponse.statusText}`);
+      }
+      
       const pnrData = await pnrResponse.json();
       
       if (!pnrResponse.ok || !pnrData) {
