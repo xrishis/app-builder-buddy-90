@@ -62,40 +62,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const createUserProfiles = async (user: User) => {
     try {
-      const role = user.user_metadata?.role || 'passenger';
-      const name = user.user_metadata?.name || '';
-      const phone = user.user_metadata?.phone || '';
-
-      // Create role-specific profile
-      if (role === 'passenger') {
-        const { error } = await supabase
-          .from('passengers')
-          .insert({
-            user_id: user.id,
-            name: name,
-            phone: phone,
-            email: user.email || ''
-          });
-        
-        if (error && !error.message.includes('duplicate key')) {
-          console.error('Error creating passenger profile:', error);
-        }
-      } else if (role === 'coolie') {
-        const { error } = await supabase
-          .from('coolies')
-          .insert({
-            user_id: user.id,
-            name: name,
-            phone: phone,
-            kyc_verified: false,
-            is_available: true,
-            earnings: 0
-          });
-        
-        if (error && !error.message.includes('duplicate key')) {
-          console.error('Error creating coolie profile:', error);
-        }
-      }
+      // For anonymous users (passengers), profiles are created via edge function
+      // For coolies, profiles are created in the Auth component after OTP verification
+      console.log('User authenticated:', user.id);
     } catch (error) {
       console.error('Error in createUserProfiles:', error);
     }

@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.complete-booking]
 verify_jwt = true
+
+[functions.pnr-login]
+verify_jwt = false

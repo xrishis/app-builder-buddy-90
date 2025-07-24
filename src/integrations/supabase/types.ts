@@ -63,69 +63,37 @@ export type Database = {
           train_number?: string | null
           weight?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "bookings_coolie_id_fkey"
-            columns: ["coolie_id"]
-            isOneToOne: false
-            referencedRelation: "coolies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bookings_passenger_id_fkey"
-            columns: ["passenger_id"]
-            isOneToOne: false
-            referencedRelation: "passengers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       coolies: {
         Row: {
           aadhar_url: string | null
-          created_at: string
-          earnings: number
+          created_at: string | null
+          earnings: number | null
           id: string
-          is_available: boolean
-          kyc_verified: boolean
-          name: string
+          is_available: boolean | null
+          name: string | null
           phone: string
-          station_id: string | null
-          user_id: string
         }
         Insert: {
           aadhar_url?: string | null
-          created_at?: string
-          earnings?: number
+          created_at?: string | null
+          earnings?: number | null
           id?: string
-          is_available?: boolean
-          kyc_verified?: boolean
-          name: string
+          is_available?: boolean | null
+          name?: string | null
           phone: string
-          station_id?: string | null
-          user_id: string
         }
         Update: {
           aadhar_url?: string | null
-          created_at?: string
-          earnings?: number
+          created_at?: string | null
+          earnings?: number | null
           id?: string
-          is_available?: boolean
-          kyc_verified?: boolean
-          name?: string
+          is_available?: boolean | null
+          name?: string | null
           phone?: string
-          station_id?: string | null
-          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "coolies_station_id_fkey"
-            columns: ["station_id"]
-            isOneToOne: false
-            referencedRelation: "stations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       feedback: {
         Row: {
@@ -161,58 +129,49 @@ export type Database = {
       }
       passengers: {
         Row: {
-          created_at: string
-          email: string | null
+          coach: string | null
+          created_at: string | null
           id: string
-          name: string
-          phone: string
-          user_id: string
+          name: string | null
+          pnr: string
+          seat: string | null
+          train_number: string | null
         }
         Insert: {
-          created_at?: string
-          email?: string | null
+          coach?: string | null
+          created_at?: string | null
           id?: string
-          name: string
-          phone: string
-          user_id: string
+          name?: string | null
+          pnr: string
+          seat?: string | null
+          train_number?: string | null
         }
         Update: {
-          created_at?: string
-          email?: string | null
+          coach?: string | null
+          created_at?: string | null
           id?: string
-          name?: string
-          phone?: string
-          user_id?: string
+          name?: string | null
+          pnr?: string
+          seat?: string | null
+          train_number?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          name: string | null
-          phone: string | null
           role: string
-          updated_at: string
-          user_id: string
         }
         Insert: {
-          created_at?: string
-          id?: string
-          name?: string | null
-          phone?: string | null
+          created_at?: string | null
+          id: string
           role: string
-          updated_at?: string
-          user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          name?: string | null
-          phone?: string | null
           role?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
