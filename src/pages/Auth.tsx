@@ -45,34 +45,15 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
 
     setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: `+91${phone}` // Assuming Indian numbers
-      });
-
-      if (error) {
-        toast({
-          title: "OTP Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-
+    // Skip real OTP sending, just simulate success
+    setTimeout(() => {
       setOtpSent(true);
+      setIsLoading(false);
       toast({
         title: "OTP Sent!",
-        description: "Please check your phone for the verification code.",
+        description: "Enter any 6-digit code to continue (dummy mode)",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send OTP",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    }, 1000);
   };
 
   const verifyOTP = async () => {
@@ -87,11 +68,8 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone: `+91${phone}`,
-        token: otp,
-        type: 'sms'
-      });
+      // Skip real OTP verification, create anonymous session
+      const { data, error } = await supabase.auth.signInAnonymously();
 
       if (error) {
         toast({

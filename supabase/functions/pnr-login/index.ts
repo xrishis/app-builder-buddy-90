@@ -33,39 +33,17 @@ serve(async (req) => {
       );
     }
 
-    // Fetch PNR details from public API
-    console.log(`Fetching PNR details for: ${pnr}`);
+    // Use dummy data for PNR validation (no real API call)
+    console.log(`Processing PNR: ${pnr} with dummy data`);
     
-    try {
-      // Use HTTPS for the PNR API call
-      const pnrResponse = await fetch(`https://pnrapi.dfth.in/pnr/${pnr}`, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'CoolieX-App/1.0',
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!pnrResponse.ok) {
-        throw new Error(`PNR API returned ${pnrResponse.status}: ${pnrResponse.statusText}`);
-      }
-      
-      const pnrData = await pnrResponse.json();
-      
-      if (!pnrResponse.ok || !pnrData) {
-        throw new Error('PNR not found or invalid');
-      }
-
-      console.log('PNR API Response:', pnrData);
-
-      // Extract passenger details (adjust based on actual API response structure)
-      const passengerData: PNRData = {
-        pnr: pnr,
-        name: pnrData.passenger_name || pnrData.name || '',
-        coach: pnrData.coach || '',
-        seat: pnrData.seat || '',
-        train_number: pnrData.train_number || pnrData.train || ''
-      };
+    // Generate dummy passenger data
+    const passengerData: PNRData = {
+      pnr: pnr,
+      name: `Passenger ${pnr.slice(-4)}`,
+      coach: `S${Math.floor(Math.random() * 10) + 1}`,
+      seat: `${Math.floor(Math.random() * 80) + 1}`,
+      train_number: `${Math.floor(Math.random() * 90000) + 10000}`
+    };
 
       // Initialize Supabase with service role key for admin operations
       const supabase = createClient(
@@ -145,22 +123,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
-
-    } catch (apiError) {
-      console.error('PNR API Error:', apiError);
-      
-      // Fallback: allow manual entry if API fails
-      return new Response(
-        JSON.stringify({ 
-          error: 'PNR API unavailable. Please try again later.',
-          fallback: true 
-        }),
-        { 
-          status: 503, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
 
   } catch (error) {
     console.error('PNR Login Error:', error);
