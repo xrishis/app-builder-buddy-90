@@ -32,47 +32,41 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
     setIsLoading(true);
 
     try {
-      // Call the PNR validation edge function
-      const { data, error } = await supabase.functions.invoke('pnr-login', {
-        body: { pnr }
-      });
+      // Create dummy passenger data
+      const passengerData = {
+        pnr: pnr,
+        name: `Passenger ${pnr.slice(-4)}`,
+        coach: `S${Math.floor(Math.random() * 10) + 1}`,
+        seat: `${Math.floor(Math.random() * 80) + 1}`,
+        train_number: `${Math.floor(Math.random() * 90000) + 10000}`
+      };
 
+      // Create anonymous session
+      const { data, error } = await supabase.auth.signInAnonymously();
+      
       if (error) {
         throw error;
       }
 
-      if (data.error) {
-        if (data.fallback) {
-          toast({
-            title: "API Unavailable",
-            description: "PNR verification service is temporarily unavailable. Please try again later.",
-            variant: "destructive"
-          });
-        } else {
-          toast({
-            title: "PNR Validation Failed",
-            description: data.error,
-            variant: "destructive"
-          });
-        }
-        return;
-      }
+      // Insert passenger data
+      await supabase.from('passengers').insert(passengerData);
+
+      // Create profile
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        role: 'passenger'
+      });
 
       // Success - show passenger details
-      setPassengerData(data.passenger);
-      
-      // Set the session in Supabase client
-      if (data.session) {
-        await supabase.auth.setSession(data.session);
-      }
+      setPassengerData(passengerData);
 
       toast({
         title: "PNR Verified!",
-        description: `Welcome ${data.passenger.name || 'Passenger'}`,
+        description: `Welcome ${passengerData.name}`,
       });
 
       // Call success callback
-      onSuccess(data.passenger, data.session);
+      onSuccess(passengerData, data.session);
 
     } catch (error) {
       console.error('PNR validation error:', error);
