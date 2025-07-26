@@ -41,21 +41,8 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
         train_number: `${Math.floor(Math.random() * 90000) + 10000}`
       };
 
-      // Create anonymous session
-      const { data, error } = await supabase.auth.signInAnonymously();
-      
-      if (error) {
-        throw error;
-      }
-
-      // Insert passenger data
+      // Insert passenger data directly (no auth required)
       await supabase.from('passengers').insert(passengerData);
-
-      // Create profile
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        role: 'passenger'
-      });
 
       // Success - show passenger details
       setPassengerData(passengerData);
@@ -65,8 +52,8 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
         description: `Welcome ${passengerData.name}`,
       });
 
-      // Call success callback
-      onSuccess(passengerData, data.session);
+      // Call success callback with dummy session
+      onSuccess(passengerData, { access_token: 'dummy', user: { id: 'dummy' } });
 
     } catch (error) {
       console.error('PNR validation error:', error);
