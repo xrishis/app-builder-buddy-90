@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_time: string
@@ -63,7 +96,22 @@ export type Database = {
           train_number?: string | null
           weight?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_bookings_coolie"
+            columns: ["coolie_id"]
+            isOneToOne: false
+            referencedRelation: "coolies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_passenger"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "passengers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coolies: {
         Row: {
@@ -74,6 +122,7 @@ export type Database = {
           is_available: boolean | null
           name: string | null
           phone: string
+          user_id: string | null
         }
         Insert: {
           aadhar_url?: string | null
@@ -83,6 +132,7 @@ export type Database = {
           is_available?: boolean | null
           name?: string | null
           phone: string
+          user_id?: string | null
         }
         Update: {
           aadhar_url?: string | null
@@ -92,6 +142,7 @@ export type Database = {
           is_available?: boolean | null
           name?: string | null
           phone?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -125,6 +176,13 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_feedback_booking"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
         ]
       }
       passengers: {
@@ -136,6 +194,7 @@ export type Database = {
           pnr: string
           seat: string | null
           train_number: string | null
+          user_id: string | null
         }
         Insert: {
           coach?: string | null
@@ -145,6 +204,7 @@ export type Database = {
           pnr: string
           seat?: string | null
           train_number?: string | null
+          user_id?: string | null
         }
         Update: {
           coach?: string | null
@@ -154,6 +214,7 @@ export type Database = {
           pnr?: string
           seat?: string | null
           train_number?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -161,17 +222,17 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          role: string
+          role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
           created_at?: string | null
           id: string
-          role: string
+          role: Database["public"]["Enums"]["app_role"]
         }
         Update: {
           created_at?: string | null
           id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
       }
@@ -204,10 +265,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "passenger" | "coolie"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -334,6 +402,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "passenger", "coolie"],
+    },
   },
 } as const
