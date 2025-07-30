@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Train, User } from "lucide-react";
 
 interface PNRValidatorProps {
-  onSuccess: (passengerData: any, session: any) => void;
+  onSuccess: () => void;
 }
 
 const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
@@ -32,28 +32,31 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
     setIsLoading(true);
 
     try {
-      // Create dummy passenger data
-      const passengerData = {
-        pnr: pnr,
-        name: `Passenger ${pnr.slice(-4)}`,
-        coach: `S${Math.floor(Math.random() * 10) + 1}`,
-        seat: `${Math.floor(Math.random() * 80) + 1}`,
-        train_number: `${Math.floor(Math.random() * 90000) + 10000}`
-      };
+      // Use the secure PNR login edge function
+      const { data, error } = await supabase.functions.invoke('pnr-login', {
+        body: { pnr }
+      });
 
-      // Insert passenger data directly (no auth required)
-      await supabase.from('passengers').insert(passengerData);
+      if (error) {
+        console.error('PNR validation error:', error);
+        toast({
+          title: "Validation Error",
+          description: "Failed to validate PNR. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      // Success - show passenger details
-      setPassengerData(passengerData);
+      // Success - store the passenger data and proceed
+      setPassengerData(data.passenger);
 
       toast({
         title: "PNR Verified!",
-        description: `Welcome ${passengerData.name}`,
+        description: `Welcome ${data.passenger.name}`,
       });
 
-      // Call success callback with dummy session
-      onSuccess(passengerData, { access_token: 'dummy', user: { id: 'dummy' } });
+      // Authentication was handled by the edge function
+      onSuccess();
 
     } catch (error) {
       console.error('PNR validation error:', error);

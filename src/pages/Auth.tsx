@@ -17,10 +17,11 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'passenger' | 'coolie'>('passenger');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const { toast } = useToast();
 
   // Check if user is already logged in
@@ -34,91 +35,104 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
     checkUser();
   }, [onAuthSuccess]);
 
-  const sendOTP = async () => {
-    if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid 10-digit mobile number",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    // Skip real OTP sending, just simulate success
-    setTimeout(() => {
-      setOtpSent(true);
-      setIsLoading(false);
-      toast({
-        title: "OTP Sent!",
-        description: "Enter any 6-digit code to continue (dummy mode)",
-      });
-    }, 1000);
-  };
-
-  const verifyOTP = async () => {
-    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the complete 6-digit verification code",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Insert into coolies table directly (no auth required)
-      await supabase.from('coolies').insert({
-        phone: phone,
-        name: name || ''
-      });
-
-      toast({
-        title: "Success!",
-        description: "Successfully verified and logged in.",
-      });
-      onAuthSuccess();
-    } catch (error) {
-      console.error('Error inserting coolie:', error);
-      toast({
-        title: "Success!",
-        description: "Successfully verified and logged in.",
-      });
-      onAuthSuccess();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isSignUp && password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: 'fallback-password' // Temporary fallback
-      });
-
-      if (error) {
-        toast({
-          title: "Email Login Failed",
-          description: error.message,
-          variant: "destructive"
+      if (isSignUp) {
+        // Sign up new coolie
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              role: 'coolie',
+              name: name,
+              phone: phone
+            }
+          }
         });
-        return;
-      }
 
-      toast({
-        title: "Welcome back!",
-        description: "Successfully logged in with email.",
-      });
-      onAuthSuccess();
+        if (error) {
+          toast({
+            title: "Sign Up Failed",
+            description: error.message,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (data.user && !data.session) {
+          toast({
+            title: "Confirmation Required",
+            description: "Please check your email for a confirmation link.",
+          });
+          return;
+        }
+
+        // Create coolie profile
+        if (data.user) {
+          await supabase.from('coolies').insert({
+            user_id: data.user.id,
+            phone: phone,
+            name: name,
+            is_available: true
+          });
+        }
+
+        toast({
+          title: "Welcome!",
+          description: "Successfully signed up as a coolie.",
+        });
+        onAuthSuccess();
+      } else {
+        // Sign in existing user
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          toast({
+            title: "Sign In Failed",
+            description: error.message,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        toast({
+          title: "Welcome back!",
+          description: "Successfully logged in.",
+        });
+        onAuthSuccess();
+      }
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         title: "Error",
-        description: "Email login failed",
+        description: "Authentication failed",
         variant: "destructive"
       });
     } finally {
@@ -126,11 +140,7 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-  const handlePNRSuccess = (passengerData: any, session: any) => {
-    toast({
-      title: "Login Successful!",
-      description: `Welcome ${passengerData.name || 'Passenger'}`,
-    });
+  const handlePNRSuccess = () => {
     onAuthSuccess();
   };
 
@@ -162,113 +172,106 @@ const Auth = ({ onAuthSuccess }: AuthProps) => {
             <Card className="w-full max-w-md">
               <CardHeader className="text-center">
                 <div className="flex justify-center mb-2">
-                  <Phone className="h-8 w-8 text-blue-600" />
+                  <Mail className="h-8 w-8 text-blue-600" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Coolie Login</CardTitle>
+                <CardTitle className="text-2xl font-bold">
+                  {isSignUp ? 'Coolie Sign Up' : 'Coolie Login'}
+                </CardTitle>
                 <CardDescription>
-                  {otpSent ? 'Enter the verification code' : 'Login with your phone number'}
+                  {isSignUp ? 'Create your coolie account' : 'Sign in to your account'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {!otpSent ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <div className="flex">
-                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                          +91
-                        </span>
+                <form onSubmit={handleEmailAuth} className="space-y-4">
+                  {isSignUp && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
                         <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="Enter 10-digit number"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          maxLength={10}
-                          className="rounded-l-none"
+                          id="name"
+                          type="text"
+                          placeholder="Enter your full name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
                         />
                       </div>
-                    </div>
-                    <Button 
-                      onClick={sendOTP} 
-                      className="w-full" 
-                      disabled={isLoading || phone.length !== 10}
-                    >
-                      {isLoading ? "Sending OTP..." : "Send OTP"}
-                    </Button>
-                    
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <div className="flex">
+                          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                            +91
+                          </span>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            placeholder="Enter 10-digit number"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                            maxLength={10}
+                            className="rounded-l-none"
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Or continue with email
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <form onSubmit={handleEmailAuth} className="space-y-3">
-                      <Input
-                        type="email"
-                        placeholder="Email (fallback)"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                      <Button type="submit" variant="outline" className="w-full" size="sm">
-                        <Mail className="h-4 w-4 mr-2" />
-                        Continue with Email
-                      </Button>
-                    </form>
+                    </>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-4">
-                        We sent a code to +91{phone}
-                      </p>
-                    </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  {isSignUp && (
                     <div className="space-y-2">
-                      <Label htmlFor="otp">Verification Code</Label>
+                      <Label htmlFor="confirmPassword">Confirm Password</Label>
                       <Input
-                        id="otp"
-                        type="text"
-                        placeholder="Enter 6-digit code"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        maxLength={6}
-                        className="text-center text-lg tracking-wider"
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
                       />
                     </div>
-                    <Button 
-                      onClick={verifyOTP} 
-                      className="w-full" 
-                      disabled={isLoading || otp.length !== 6}
-                    >
-                      {isLoading ? "Verifying..." : "Verify & Login"}
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        setOtpSent(false);
-                        setOtp('');
-                      }} 
-                      variant="outline" 
-                      className="w-full"
-                    >
-                      Change Phone Number
-                    </Button>
-                  </div>
-                )}
+                  )}
+                  
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Processing..." : isSignUp ? "Sign Up" : "Sign In"}
+                  </Button>
+                </form>
+                
+                <div className="mt-4 text-center">
+                  <Button
+                    variant="link"
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setPassword('');
+                      setConfirmPassword('');
+                    }}
+                  >
+                    {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -110,6 +110,17 @@ serve(async (req) => {
         throw profileError;
       }
 
+      // Link passenger to the authenticated user
+      const { error: linkError } = await supabase
+        .from('passengers')
+        .update({ user_id: authData.user.id })
+        .eq('id', passengerId);
+
+      if (linkError) {
+        console.error('Error linking passenger to user:', linkError);
+        throw linkError;
+      }
+
       console.log('Passenger login successful:', { passengerId, userId: authData.user.id });
 
       return new Response(
