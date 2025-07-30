@@ -32,13 +32,13 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
     setIsLoading(true);
 
     try {
-      // Use the secure PNR login edge function
-      const { data, error } = await supabase.functions.invoke('pnr-login', {
+      // First validate PNR with our edge function
+      const { data: pnrData, error: pnrError } = await supabase.functions.invoke('pnr-login', {
         body: { pnr }
       });
 
-      if (error) {
-        console.error('PNR validation error:', error);
+      if (pnrError) {
+        console.error('PNR validation error:', pnrError);
         toast({
           title: "Validation Error",
           description: "Failed to validate PNR. Please try again.",
@@ -47,15 +47,50 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
         return;
       }
 
-      // Success - store the passenger data and proceed
-      setPassengerData(data.passenger);
+      // Create demo user account for this passenger
+      const passengerEmail = `passenger_${pnr}@demo.com`;
+      const passengerPassword = `demo123`;
+
+      // Try to sign in first
+      let authResult = await supabase.auth.signInWithPassword({
+        email: passengerEmail,
+        password: passengerPassword
+      });
+
+      // If sign in fails, create new account
+      if (authResult.error) {
+        authResult = await supabase.auth.signUp({
+          email: passengerEmail,
+          password: passengerPassword,
+          options: {
+            data: {
+              role: 'passenger',
+              pnr: pnr,
+              name: pnrData.passenger.name
+            }
+          }
+        });
+      }
+
+      if (authResult.error) {
+        console.error('Auth error:', authResult.error);
+        toast({
+          title: "Authentication Error",
+          description: "Failed to authenticate. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Store passenger data and proceed
+      setPassengerData(pnrData.passenger);
 
       toast({
         title: "PNR Verified!",
-        description: `Welcome ${data.passenger.name}`,
+        description: `Welcome ${pnrData.passenger.name}`,
       });
 
-      // Authentication was handled by the edge function
+      // Success - proceed to app
       onSuccess();
 
     } catch (error) {
