@@ -97,7 +97,7 @@ const PNRValidator = ({ onSuccess }: PNRValidatorProps) => {
                 className="text-center text-lg tracking-wider"
               />
               <p className="text-sm text-muted-foreground">
-                Example: 1234567890
+                Try: 1234567890, 9876543210, or any 10-digit number
               </p>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading || pnr.length !== 10}>

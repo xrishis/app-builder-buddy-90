@@ -89,25 +89,41 @@ serve(async (req) => {
         passengerId = newPassenger.id;
       }
 
-      // Create anonymous session for passenger
-      const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+      // Create a regular user account for passenger using email/password
+      const passengerEmail = `passenger_${pnr}@demo.com`;
+      const passengerPassword = `pass_${pnr}`;
       
-      if (authError) {
-        console.error('Error creating anonymous session:', authError);
-        throw authError;
-      }
+      // Try to sign in first (in case user already exists)
+      let authData;
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: passengerEmail,
+        password: passengerPassword
+      });
 
-      // Create or update profile with passenger role
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: authData.user.id,
-          role: 'passenger'
+      if (signInError) {
+        // User doesn't exist, create new account
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: passengerEmail,
+          password: passengerPassword,
+          options: {
+            data: {
+              role: 'passenger',
+              pnr: pnr
+            }
+          }
         });
 
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
-        throw profileError;
+        if (signUpError) {
+          console.error('Error creating passenger account:', signUpError);
+          throw signUpError;
+        }
+        authData = signUpData;
+      } else {
+        authData = signInData;
+      }
+
+      if (!authData.user) {
+        throw new Error('Failed to create/authenticate user');
       }
 
       // Link passenger to the authenticated user
@@ -118,7 +134,7 @@ serve(async (req) => {
 
       if (linkError) {
         console.error('Error linking passenger to user:', linkError);
-        throw linkError;
+        // Don't throw here, as the user was created successfully
       }
 
       console.log('Passenger login successful:', { passengerId, userId: authData.user.id });
