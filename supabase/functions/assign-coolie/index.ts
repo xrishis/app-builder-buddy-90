@@ -65,7 +65,6 @@ Deno.serve(async (req) => {
       .from('coolies')
       .select('id')
       .eq('is_available', true)
-      .eq('kyc_verified', true)
       .limit(1)
       .single()
 
